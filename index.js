@@ -101,16 +101,11 @@ app.post("/user", async (req, res) => {
 });
 
 app.post("/user/edit", async (req, res) => {
-	const { accessToken, email: newEmail, name, surname } = req.body;
+	const { accessToken, email, name, surname } = req.body;
 	try {
 		jwt.verify(accessToken, process.env.JWT_SECRET, async (error, user) => {
 			if (error) {
 				throw new Error("При изменении данных произошла ошибка");
-			}
-			const exitingUser = await User.findOne({ email });
-
-			if (exitingUser) {
-				throw new Error("Пользователь с таким email уже зарегистрирован");
 			}
 
 			const account = await User.findOneAndUpdate(
@@ -118,18 +113,25 @@ app.post("/user/edit", async (req, res) => {
 				{ email, name, surname }
 			);
 			await account.save();
+			res.json(user)
 		});
 	} catch (e) {
 		res.status(302).json(e.message);
 	}
 });
 
-app.get("/quiz", async (req, res) => {
-	const test = req.body.id
-		? await Test.findOne({ id: req.body.id })
-		: await Test.find();
+app.post("/quiz", async (req, res) => {
+	try {
+		const test = await Test.findOne({ _id: req.body.id })
 
-	res.json(test);
+		if (test) {
+			res.json(test)
+		} else {
+			throw new Error("Тест не найден")
+		}
+	} catch (e) {
+		res.status(302).json(e.message);
+	}
 });
 
 app.post("/edit", async (req, res) => {
@@ -141,7 +143,43 @@ app.post("/edit", async (req, res) => {
 	res.json(test);
 });
 
-app.post("/create", async (req, res) => { });
+app.post("/test/create", async (req, res) => {
+	const test = await Test.create(req.body)
+	res.json(test)
+});
+
+app.post("/test/delete", async (req, res) => {
+	try {
+		await Test.findOneAndDelete({ _id: req.body.id })
+		res.json('deleted')
+	} catch (e) {
+		res.status(302).json(e.message)
+	}
+});
+
+app.post("/test/result", async (req, res) => {
+	try {
+		const test = await Test.findOne({ _id: req.body.id })
+		console.log(test)
+		test.results.push({
+			answers: req.body.answers,
+			testLength: req.body.testLength,
+			timestamp: req.body.timestamp,
+			user: req.body.user
+		})
+
+		await test.save()
+
+		res.json(test)
+	} catch (e) {
+		res.status(302).json(e.message)
+	}
+});
+
+app.get('/tests/get', async (req, res) => {
+	const tests = await Test.find()
+	res.json(tests)
+})
 
 mongoose
 	.connect(

@@ -4,7 +4,6 @@ const TestSchema = new Schema({
   questions: [
     {
       question: String,
-      name: String,
       answers: [
         {
           text: String,
@@ -13,6 +12,18 @@ const TestSchema = new Schema({
       ],
     },
   ],
+  results: [
+    {
+      answers: [Boolean],
+      testLength: Number,
+      timestamp: String,
+      user: String
+    }
+  ],
+  testName: String,
+  author: String,
+  timestamp: String,
+  email: String
 });
 
 const Test = model("test", TestSchema);
