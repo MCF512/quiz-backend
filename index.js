@@ -1,6 +1,5 @@
 const express = require("express");
 const dotenv = require('dotenv')
-// const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const { Test, User } = require("./models");
 const bcrypt = require("bcrypt");
@@ -160,7 +159,6 @@ app.post("/test/delete", async (req, res) => {
 app.post("/test/result", async (req, res) => {
 	try {
 		const test = await Test.findOne({ _id: req.body.id })
-		console.log(test)
 		test.results.push({
 			answers: req.body.answers,
 			testLength: req.body.testLength,
@@ -183,7 +181,7 @@ app.get('/tests/get', async (req, res) => {
 
 mongoose
 	.connect(
-		`mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@result.sgeroau.mongodb.net/quiz?retryWrites=true&w=majority`
+		process.env.DB_CONNECTION
 	)
 	.then(() => {
 		app.listen(port, () => {
